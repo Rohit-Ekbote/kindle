@@ -30,14 +30,14 @@ export const envs = {
   events: (name: string, limit = 50) =>
     apiFetch<EnvEvent[]>(`/api/envs/${name}/events?limit=${limit}`),
   editValues: (name: string, valuesYaml: string) =>
-    apiFetch<void>(`/api/envs/${name}/values`, {
+    apiFetch<void>(`/api/envs/${name}/edit-values`, {
       method: 'POST',
       body: JSON.stringify({ values_yaml: valuesYaml } as EditValuesRequest),
     }),
   updateImage: (name: string, req: UpdateImageRequest) =>
-    apiFetch<void>(`/api/envs/${name}/image`, { method: 'POST', body: JSON.stringify(req) }),
+    apiFetch<void>(`/api/envs/${name}/update-image`, { method: 'POST', body: JSON.stringify(req) }),
   upgradeChart: (name: string, chartRef: string) =>
-    apiFetch<void>(`/api/envs/${name}/upgrade`, {
+    apiFetch<void>(`/api/envs/${name}/upgrade-chart`, {
       method: 'POST',
       body: JSON.stringify({ chart_ref: chartRef }),
     }),

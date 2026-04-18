@@ -1,8 +1,9 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
 
-function Placeholder({ name }: { name: string }) {
-  return <p className="text-gray-500 p-8">{name} — coming soon</p>
-}
+const EnvList = lazy(() => import('./pages/EnvList'))
+const CreateEnv = lazy(() => import('./pages/CreateEnv'))
+const EnvDetail = lazy(() => import('./pages/EnvDetail'))
 
 export default function App() {
   return (
@@ -12,11 +13,13 @@ export default function App() {
         <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">Environments</Link>
       </nav>
       <main className="px-6 py-8 max-w-7xl mx-auto">
-        <Routes>
-          <Route path="/" element={<Placeholder name="EnvList" />} />
-          <Route path="/envs/new" element={<Placeholder name="CreateEnv" />} />
-          <Route path="/envs/:name" element={<Placeholder name="EnvDetail" />} />
-        </Routes>
+        <Suspense fallback={<p className="text-gray-400">Loading…</p>}>
+          <Routes>
+            <Route path="/" element={<EnvList />} />
+            <Route path="/envs/new" element={<CreateEnv />} />
+            <Route path="/envs/:name" element={<EnvDetail />} />
+          </Routes>
+        </Suspense>
       </main>
     </div>
   )
