@@ -32,8 +32,9 @@ export default function EnvDetail() {
   useEffect(() => {
     envs.get(name!)
       .then(setEnv)
+      .catch((e) => setActionError(e instanceof Error ? e.message : 'Failed to load environment'))
       .finally(() => setLoading(false))
-    envs.events(name!).then(setEvents)
+    envs.events(name!).then(setEvents).catch(console.error)
   }, [name])
 
   usePolling(loadEnv, 5000, isInFlight)
@@ -150,11 +151,12 @@ export default function EnvDetail() {
 
       {/* Modals */}
       {showValues && (
+        // initialValues is empty: no GET-values API endpoint exists; operator applies a full values overlay
         <ValuesEditor
           initialValues={''}
           onSave={async (yaml) => {
             await envs.editValues(name!, yaml)
-            setShowValues(false)
+            // ValuesEditor calls onClose() itself on success; no need to setShowValues here
           }}
           onClose={() => setShowValues(false)}
         />
