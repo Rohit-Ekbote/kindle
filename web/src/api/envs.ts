@@ -21,10 +21,10 @@ export const envs = {
   list: () => apiFetch<EnvSummary[]>('/api/envs'),
   get: (name: string) => apiFetch<EnvSummary>(`/api/envs/${name}`),
   create: (req: CreateEnvRequest) =>
-    apiFetch<EnvSummary>('/api/envs', { method: 'POST', body: JSON.stringify(req) }),
+    apiFetch<{ name: string; status: string }>('/api/envs', { method: 'POST', body: JSON.stringify(req) }),
   delete: (name: string) => apiFetch<void>(`/api/envs/${name}`, { method: 'DELETE' }),
   status: (name: string) => apiFetch<EnvStatus>(`/api/envs/${name}/status`),
-  kubeconfig: (name: string) => {
+  kubeconfig: (name: string): void => {
     window.location.href = `/api/envs/${name}/kubeconfig`
   },
   events: (name: string, limit = 50) =>

@@ -30,7 +30,7 @@ export interface EnvStatus {
 }
 
 export interface EnvEvent {
-  id: number
+  id: string
   env_name: string
   actor_email: string
   action_type: string
@@ -50,13 +50,22 @@ export interface UserEditableField {
   options?: string[]
 }
 
+export interface PresetDefaults {
+  machine_type: string
+  disk_size_gb: number
+  zone: string
+  chart_ref: string
+}
+
 export interface Preset {
   name: string
   description: string
+  defaults: PresetDefaults
   user_editable: UserEditableField[]
 }
 
 export interface ChartVersion {
   ref: string
   sha: string
+  kind: 'tag' | 'branch'
 }
