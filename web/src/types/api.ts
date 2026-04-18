@@ -44,7 +44,7 @@ export interface UserEditableField {
   key: string
   label: string
   type: 'string' | 'integer' | 'boolean' | 'enum'
-  default?: unknown
+  default?: string | number | boolean
   min?: number
   max?: number
   options?: string[]

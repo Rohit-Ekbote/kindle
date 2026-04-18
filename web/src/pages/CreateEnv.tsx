@@ -9,15 +9,17 @@ export default function CreateEnv() {
   const [presets, setPresets] = useState<Preset[]>([])
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null)
   const [name, setName] = useState('')
-  const [overrides, setOverrides] = useState<Record<string, unknown>>({})
+  const [overrides, setOverrides] = useState<Record<string, string | number | boolean>>({})
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    templates.list().then((list) => {
-      setPresets(list)
-      if (list.length > 0) setSelectedPreset(list[0])
-    })
+    templates.list()
+      .then((list) => {
+        setPresets(list)
+        if (list.length > 0) setSelectedPreset(list[0])
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load templates'))
   }, [])
 
   const handlePresetChange = (presetName: string) => {
@@ -26,13 +28,13 @@ export default function CreateEnv() {
     setOverrides({})
   }
 
-  const handleOverride = (key: string, value: unknown) => {
+  const handleOverride = (key: string, value: string | number | boolean) => {
     setOverrides((prev) => ({ ...prev, [key]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedPreset) return
+    if (!selectedPreset) { setError('Select a template to continue'); return }
     setSubmitting(true)
     setError(null)
     try {
@@ -77,7 +79,7 @@ export default function CreateEnv() {
 
         {selectedPreset && selectedPreset.user_editable.map((field) => (
           <FieldInput
-            key={field.key}
+            key={`${selectedPreset.name}-${field.key}`}
             field={field}
             defaultValue={overrides[field.key] ?? field.default}
             onChange={(v) => handleOverride(field.key, v)}
@@ -113,8 +115,8 @@ function FieldInput({
   onChange,
 }: {
   field: UserEditableField
-  defaultValue: unknown
-  onChange: (v: unknown) => void
+  defaultValue: string | number | boolean | undefined
+  onChange: (v: string | number | boolean) => void
 }) {
   return (
     <div>
