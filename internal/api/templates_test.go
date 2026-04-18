@@ -20,7 +20,7 @@ func testPresetsDir() string {
 }
 
 func TestTemplatesHandler_List(t *testing.T) {
-	loader := presets.NewLoader(filepath.Join(filepath.Dir(testPresetsDir()), "testdata"))
+	loader := presets.NewLoader(testPresetsDir())
 	h := api.NewTemplatesHandler(api.TemplatesHandlerDeps{
 		Loader: loader,
 	})
