@@ -137,6 +137,10 @@ func (h *EnvsHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "env not found")
 		return
 	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	if h.deps.Jobs.InFlight(name) {
 		writeError(w, http.StatusConflict, "operation already in progress")
 		return
@@ -159,14 +163,33 @@ func (h *EnvsHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *EnvsHandler) runApply(name, workDir, logPath, actor string) {
-	if err := h.deps.TFRunner.Init(workDir, logPath); err == nil {
-		h.deps.TFRunner.Apply(workDir, logPath)
+	var applyErr error
+	if err := h.deps.TFRunner.Init(workDir, logPath); err != nil {
+		applyErr = err
+	} else {
+		applyErr = h.deps.TFRunner.Apply(workDir, logPath)
+	}
+	if applyErr != nil {
+		h.deps.Jobs.Set(name, terraform.JobStatus{
+			State:   terraform.StateFailed,
+			Err:     applyErr,
+			LogPath: logPath,
+			Actor:   actor,
+		})
+		time.Sleep(30 * time.Second)
 	}
 	h.deps.Jobs.Delete(name)
 }
 
 func (h *EnvsHandler) runDestroy(name, workDir, logPath string) {
-	h.deps.TFRunner.Destroy(workDir, logPath)
+	if err := h.deps.TFRunner.Destroy(workDir, logPath); err != nil {
+		h.deps.Jobs.Set(name, terraform.JobStatus{
+			State:   terraform.StateFailed,
+			Err:     err,
+			LogPath: logPath,
+		})
+		time.Sleep(30 * time.Second)
+	}
 	h.deps.Jobs.Delete(name)
 	src := filepath.Join(h.deps.DataDir, "envs", name)
 	dst := filepath.Join(h.deps.DataDir, "archive", name)
@@ -176,7 +199,9 @@ func (h *EnvsHandler) runDestroy(name, workDir, logPath string) {
 
 func (h *EnvsHandler) logPath(name, action string) string {
 	ts := time.Now().Format("20060102-150405")
-	return filepath.Join(h.deps.DataDir, "envs", name, "ops", fmt.Sprintf("%s-%s.log", ts, action))
+	dir := filepath.Join(h.deps.DataDir, "envs", name, "ops")
+	os.MkdirAll(dir, 0755)
+	return filepath.Join(dir, fmt.Sprintf("%s-%s.log", ts, action))
 }
 
 func vmToSummary(vm *gcp.VMInfo) envSummary {

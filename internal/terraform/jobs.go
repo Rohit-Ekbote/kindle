@@ -9,6 +9,7 @@ const (
 	StateProvisioning = "provisioning"
 	StateDeleting     = "deleting"
 	StateIdle         = "idle"
+	StateFailed       = "failed"
 )
 
 type JobStatus struct {
