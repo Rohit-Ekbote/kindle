@@ -1,6 +1,8 @@
 package chartversions
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -16,24 +18,37 @@ type Version struct {
 // Lister fetches available versions from a remote Helm chart git repository.
 type Lister struct {
 	repoURL string
+	gitPath string
 }
 
 // NewLister returns a Lister that queries the given repository URL.
-func NewLister(repoURL string) *Lister {
-	return &Lister{repoURL: repoURL}
+// It resolves the git binary path once at construction time to prevent PATH injection.
+func NewLister(repoURL string) (*Lister, error) {
+	p, err := exec.LookPath("git")
+	if err != nil {
+		return nil, fmt.Errorf("git not found: %w", err)
+	}
+	return &Lister{repoURL: repoURL, gitPath: p}, nil
 }
 
 // List calls git ls-remote and returns all tags and branches found in the repository.
 // Returns an empty (non-nil) slice when the repository has no refs.
-func (l *Lister) List() ([]Version, error) {
-	out, err := exec.Command("git", "ls-remote", "--heads", "--tags", l.repoURL).Output()
-	if err != nil {
-		return nil, fmt.Errorf("git ls-remote: %w", err)
+func (l *Lister) List(ctx context.Context) ([]Version, error) {
+	cmd := exec.CommandContext(ctx, l.gitPath, "ls-remote", "--heads", "--tags", l.repoURL)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("git ls-remote: %w: %s", err, stderr.String())
 	}
-	return parseRefs(string(out)), nil
+	if stdout.Len() > 1<<20 { // 1MB
+		return nil, fmt.Errorf("git ls-remote output too large (%d bytes)", stdout.Len())
+	}
+	return ParseRefs(stdout.String()), nil
 }
 
-func parseRefs(output string) []Version {
+// ParseRefs parses the output of git ls-remote into a slice of Versions.
+func ParseRefs(output string) []Version {
 	versions := []Version{}
 	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
 		if line == "" {

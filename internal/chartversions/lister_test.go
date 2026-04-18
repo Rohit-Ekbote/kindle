@@ -1,6 +1,7 @@
 package chartversions_test
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,9 +42,10 @@ func createLocalBareRepo(t *testing.T) string {
 
 func TestLister_List(t *testing.T) {
 	repoURL := createLocalBareRepo(t)
-	lister := chartversions.NewLister(repoURL)
+	lister, err := chartversions.NewLister(repoURL)
+	require.NoError(t, err)
 
-	versions, err := lister.List()
+	versions, err := lister.List(context.Background())
 	require.NoError(t, err)
 
 	var names []string
@@ -52,4 +54,44 @@ func TestLister_List(t *testing.T) {
 	}
 	assert.Contains(t, names, "refs/tags/v1.0.0")
 	assert.Contains(t, names, "refs/heads/staging")
+}
+
+func TestParseRefs(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  []chartversions.Version
+	}{
+		{
+			name:  "empty output",
+			input: "",
+			want:  []chartversions.Version{},
+		},
+		{
+			name:  "tag and branch",
+			input: "abc123\trefs/tags/v1.0.0\ndef456\trefs/heads/main\n",
+			want: []chartversions.Version{
+				{Ref: "refs/tags/v1.0.0", SHA: "abc123", Kind: "tag"},
+				{Ref: "refs/heads/main", SHA: "def456", Kind: "branch"},
+			},
+		},
+		{
+			name:  "skips tag dereference",
+			input: "abc123\trefs/tags/v1.0.0\nxyz789\trefs/tags/v1.0.0^{}\n",
+			want: []chartversions.Version{
+				{Ref: "refs/tags/v1.0.0", SHA: "abc123", Kind: "tag"},
+			},
+		},
+		{
+			name:  "skips malformed line",
+			input: "abc123\n",
+			want:  []chartversions.Version{},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := chartversions.ParseRefs(tc.input)
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }
