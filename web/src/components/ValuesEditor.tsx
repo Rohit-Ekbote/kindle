@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
 
 interface Props {
@@ -11,6 +11,14 @@ export function ValuesEditor({ initialValues, onSave, onClose }: Props) {
   const [values, setValues] = useState(initialValues)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const tryClose = () => { if (!saving) onClose() }
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') tryClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [saving]) // re-bind when saving changes so tryClose captures latest value
 
   const handleSave = async () => {
     setSaving(true)
@@ -28,8 +36,7 @@ export function ValuesEditor({ initialValues, onSave, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      onClick={onClose}
-      onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}
+      onClick={tryClose}
     >
       <div
         role="dialog"
@@ -41,7 +48,7 @@ export function ValuesEditor({ initialValues, onSave, onClose }: Props) {
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200">
           <h2 className="text-base font-semibold text-gray-900">Edit Helm Values</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+          <button onClick={tryClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
         <div className="flex-1 overflow-hidden">
           <Editor
@@ -53,7 +60,7 @@ export function ValuesEditor({ initialValues, onSave, onClose }: Props) {
         </div>
         {error && <p className="text-sm text-red-600 px-5 py-2">{error}</p>}
         <div className="flex justify-end gap-3 px-5 py-3 border-t border-gray-200">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+          <button onClick={tryClose} className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
             Cancel
           </button>
           <button
