@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -30,7 +32,7 @@ type Server struct {
 	router chi.Router
 }
 
-func New(cfg *config.Config, vmClient gcp.VMClient, database *db.DB) *Server {
+func New(cfg *config.Config, vmClient gcp.VMClient, database *db.DB, staticFiles embed.FS) *Server {
 	authHandler := auth.NewHandler(auth.HandlerConfig{
 		ClientID:        cfg.GoogleClientID,
 		ClientSecret:    cfg.GoogleClientSecret,
@@ -151,7 +153,7 @@ func New(cfg *config.Config, vmClient gcp.VMClient, database *db.DB) *Server {
 	eventsHandler := api.NewEventsHandler(api.EventsHandlerDeps{DB: database})
 
 	s := &Server{cfg: cfg, auth: authHandler}
-	s.router = s.buildRouter(envsHandler, templatesHandler, statusHandler, kubeconfigHandler, opsHandler, eventsHandler)
+	s.router = s.buildRouter(envsHandler, templatesHandler, statusHandler, kubeconfigHandler, opsHandler, eventsHandler, staticFiles)
 	return s
 }
 
@@ -162,6 +164,7 @@ func (s *Server) buildRouter(
 	kubeconf *api.KubeconfigHandler,
 	ops *api.OperationsHandler,
 	events *api.EventsHandler,
+	staticFiles embed.FS,
 ) chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -189,6 +192,21 @@ func (s *Server) buildRouter(
 		r.Get("/api/templates", templates.List)
 		r.Get("/api/templates/{name}/chart-versions", templates.ChartVersions)
 	})
+
+	// Serve embedded React SPA for all non-API routes
+	webDist, err := fs.Sub(staticFiles, "web/dist")
+	if err != nil {
+		slog.Error("failed to sub static files", "error", err)
+	} else {
+		fileServer := http.FileServer(http.FS(webDist))
+		r.Get("/*", func(w http.ResponseWriter, req *http.Request) {
+			// For client-side routing: serve index.html for unknown paths
+			if _, statErr := fs.Stat(webDist, req.URL.Path[1:]); statErr != nil {
+				req.URL.Path = "/"
+			}
+			fileServer.ServeHTTP(w, req)
+		})
+	}
 
 	return r
 }

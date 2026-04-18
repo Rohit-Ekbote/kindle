@@ -6,3 +6,4 @@ bin/
 web/node_modules/
 web/dist/
 data/
+cmd/portal/web/

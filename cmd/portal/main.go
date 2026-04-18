@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,6 +13,9 @@ import (
 	"github.com/emdash/kindle/internal/gcp"
 	"github.com/emdash/kindle/internal/server"
 )
+
+//go:embed web/dist
+var staticFiles embed.FS
 
 func main() {
 	cfg, err := config.Load()
@@ -35,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv := server.New(cfg, vmClient, database)
+	srv := server.New(cfg, vmClient, database, staticFiles)
 	slog.Info("portal listening", "addr", srv.Addr())
 	if err := http.ListenAndServe(srv.Addr(), srv.Handler()); err != nil {
 		slog.Error("server error", "error", err)
