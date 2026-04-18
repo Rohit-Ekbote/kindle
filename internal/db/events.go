@@ -15,14 +15,14 @@ const (
 )
 
 type Event struct {
-	ID          int64
-	EnvName     string
-	ActorEmail  string
-	ActionType  string
-	Description string
-	Outcome     string
-	LogPath     string
-	CreatedAt   time.Time
+	ID          int64     `json:"id"`
+	EnvName     string    `json:"env_name"`
+	ActorEmail  string    `json:"actor_email"`
+	ActionType  string    `json:"action_type"`
+	Description string    `json:"description"`
+	Outcome     string    `json:"outcome"`
+	LogPath     string    `json:"log_path"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 func (d *DB) WriteEvent(e Event) error {
