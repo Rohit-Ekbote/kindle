@@ -23,7 +23,10 @@ export default function EnvList() {
   }, [])
 
   const filtered = list
-    .filter((e) => e.name.includes(search) || e.owner.includes(search))
+    .filter((e) => {
+      const q = search.toLowerCase()
+      return e.name.toLowerCase().includes(q) || e.owner.toLowerCase().includes(q)
+    })
     .sort((a, b) => {
       const av = a[sortKey] ?? ''
       const bv = b[sortKey] ?? ''
