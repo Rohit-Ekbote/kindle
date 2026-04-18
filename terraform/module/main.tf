@@ -31,6 +31,7 @@ resource "google_compute_instance" "env" {
   name         = var.env_name
   machine_type = var.machine_type
   zone         = var.zone
+  tags         = ["${var.env_name}-env"]
   labels       = local.env_labels
 
   boot_disk {

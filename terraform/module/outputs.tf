@@ -7,5 +7,5 @@ output "vm_name" {
 }
 
 output "fqdn" {
-  value = "${var.env_name}.${var.zone_domain}"
+  value = local.fqdn
 }

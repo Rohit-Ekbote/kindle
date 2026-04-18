@@ -15,7 +15,7 @@ until kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes 2>/dev/null | gre
 done
 
 # Install Helm
-curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+curl -sfL https://raw.githubusercontent.com/helm/helm/v3.17.3/scripts/get-helm-3 | bash
 
 # Clone chart repo at specified ref
 git clone --depth 1 --branch "$CHART_REF" "$CHART_REPO_URL" /opt/chart-repo
