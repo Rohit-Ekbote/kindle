@@ -1,7 +1,6 @@
 import { useState } from 'react'
 
 interface Props {
-  envName: string
   workloadName: string
   container: string
   currentTag: string
@@ -9,7 +8,7 @@ interface Props {
   onClose: () => void
 }
 
-export function ImageTagModal({ envName: _envName, workloadName, container, currentTag, onSave, onClose }: Props) {
+export function ImageTagModal({ workloadName, container, currentTag, onSave, onClose }: Props) {
   const [tag, setTag] = useState(currentTag)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -31,6 +30,7 @@ export function ImageTagModal({ envName: _envName, workloadName, container, curr
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}
     >
       <div
         role="dialog"

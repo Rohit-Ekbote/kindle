@@ -46,8 +46,8 @@ export function WorkloadsTable({ envName, workloads, onUpdated }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {rows.map((row, i) => (
-              <tr key={i} className="hover:bg-gray-50">
+            {rows.map((row) => (
+              <tr key={`${row.workloadName}/${row.container}`} className="hover:bg-gray-50">
                 <td className="px-3 py-2 text-gray-500">{row.kind}</td>
                 <td className="px-3 py-2 font-medium text-gray-900">{row.workloadName}</td>
                 <td className="px-3 py-2 text-gray-600">{row.container}</td>
@@ -71,7 +71,6 @@ export function WorkloadsTable({ envName, workloads, onUpdated }: Props) {
 
       {editing && (
         <ImageTagModal
-          envName={envName}
           workloadName={editing.workloadName}
           container={editing.container}
           currentTag={editing.currentTag}
