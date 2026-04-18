@@ -65,6 +65,12 @@ func TestListEvents_Empty(t *testing.T) {
 	assert.Empty(t, events)
 }
 
+func TestUpdateOutcome_NoMatch(t *testing.T) {
+	d := openTestDB(t)
+	err := d.UpdateOutcome("nonexistent", "create", db.OutcomeSuccess)
+	assert.ErrorIs(t, err, db.ErrNotFound)
+}
+
 func TestWriteEvent_UpdateOutcome(t *testing.T) {
 	d := openTestDB(t)
 
