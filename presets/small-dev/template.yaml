@@ -1,0 +1,25 @@
+name: small-dev
+description: "Lightweight dev environment"
+defaults:
+  machine_type: e2-standard-2
+  disk_size_gb: 50
+  zone: us-central1-a
+  chart_ref: main
+image_tag_keys:
+  api: api.image.tag
+  worker: worker.image.tag
+user_editable:
+  - key: machine_type
+    label: "VM Machine Type"
+    type: enum
+    options: [e2-standard-2, e2-standard-4, e2-standard-8]
+  - key: disk_size_gb
+    label: "Disk Size (GB)"
+    type: integer
+    min: 20
+    max: 500
+  - key: app.replicas
+    label: "App Replicas"
+    type: integer
+    min: 1
+    max: 5
