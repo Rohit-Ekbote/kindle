@@ -29,7 +29,7 @@ func TestLoad_AllRequired(t *testing.T) {
 	cfg, err := config.Load()
 	require.NoError(t, err)
 	assert.Equal(t, "client-id", cfg.GoogleClientID)
-	assert.Equal(t, "./data", cfg.DataDir)     // default
+	assert.Equal(t, "./data", cfg.DataDir)       // default
 	assert.Equal(t, "./presets", cfg.PresetsDir) // default
 	assert.Equal(t, "8080", cfg.Port)            // default
 }
