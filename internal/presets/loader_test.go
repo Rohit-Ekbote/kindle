@@ -39,4 +39,5 @@ func TestLoader_BaseValues(t *testing.T) {
 	vals, err := preset.BaseValues()
 	require.NoError(t, err)
 	assert.NotEmpty(t, vals)
+	assert.Contains(t, string(vals), "latest")
 }

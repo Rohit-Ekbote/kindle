@@ -24,7 +24,7 @@ func (l *Loader) List() ([]*Preset, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read presets dir: %w", err)
 	}
-	var presets []*Preset
+	presets := make([]*Preset, 0)
 	for _, e := range entries {
 		if !e.IsDir() {
 			continue
@@ -54,12 +54,19 @@ func (l *Loader) load(name string) (*Preset, error) {
 	}
 	var p Preset
 	if err := yaml.Unmarshal(data, &p); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unmarshal %s: %w", path, err)
 	}
 	p.dir = filepath.Join(l.dir, name)
 	return &p, nil
 }
 
 func (p *Preset) BaseValues() ([]byte, error) {
-	return os.ReadFile(filepath.Join(p.dir, "values.yaml"))
+	if p.dir == "" {
+		return nil, errors.New("preset has no directory set")
+	}
+	data, err := os.ReadFile(filepath.Join(p.dir, "values.yaml"))
+	if err != nil {
+		return nil, fmt.Errorf("read values for preset %s: %w", p.Name, err)
+	}
+	return data, nil
 }
