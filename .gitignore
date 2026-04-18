@@ -1,0 +1,8 @@
+bin/
+.env
+*.swp
+*.swo
+.DS_Store
+web/node_modules/
+web/dist/
+data/
