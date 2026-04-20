@@ -1,0 +1,18 @@
+services:
+  portal:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      # Persistent data (SQLite DB + Terraform state)
+      - ./data:/data
+      # Preset templates
+      - ./presets:/presets
+      # GCP Application Default Credentials so gcloud works inside the container
+      - ${HOME}/.config/gcloud:/root/.config/gcloud:ro
+    environment:
+      # Tell gcloud to use ADC from the mounted credentials
+      GOOGLE_APPLICATION_CREDENTIALS: ""
+      CLOUDSDK_CORE_PROJECT: ${GCP_PROJECT_ID}
