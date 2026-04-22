@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"gopkg.in/yaml.v3"
 )
 
 type RunnerConfig struct {
@@ -31,6 +33,7 @@ type UpgradeParams struct {
 	ValuesFile     string
 	KubeconfigPath string
 	LogPath        string
+	SecretValues   map[string]string
 }
 
 func (r *Runner) Upgrade(p UpgradeParams) error {
@@ -41,6 +44,19 @@ func (r *Runner) Upgrade(p UpgradeParams) error {
 		"--values", p.ValuesFile,
 		"--kubeconfig", p.KubeconfigPath,
 		"--wait", "--timeout", "10m",
+	}
+	if len(p.SecretValues) > 0 {
+		f, err := os.CreateTemp("", "helm-secrets-*.yaml")
+		if err != nil {
+			return fmt.Errorf("create secrets temp file: %w", err)
+		}
+		defer os.Remove(f.Name())
+		if err := yaml.NewEncoder(f).Encode(p.SecretValues); err != nil {
+			f.Close()
+			return fmt.Errorf("write secrets temp file: %w", err)
+		}
+		f.Close()
+		args = append(args, "--values", f.Name())
 	}
 	return r.run(p.LogPath, args...)
 }
