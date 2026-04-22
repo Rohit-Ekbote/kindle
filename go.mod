@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	cloud.google.com/go/compute v1.60.0
+	cloud.google.com/go/secretmanager v1.19.0
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/gorilla/sessions v1.2.2
 	github.com/stretchr/testify v1.11.1
@@ -22,7 +23,6 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	cloud.google.com/go/iam v1.7.0 // indirect
-	cloud.google.com/go/secretmanager v1.19.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
