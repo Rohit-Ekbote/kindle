@@ -15,3 +15,10 @@ func TestNoOpFetcher_ReturnsEmptyMap(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, got)
 }
+
+func TestNewFetcherFromConfig_NoneBackend(t *testing.T) {
+	f, err := secrets.NewFetcherFromConfig()
+	require.NoError(t, err)
+	_, ok := f.(*secrets.NoOpFetcher)
+	assert.True(t, ok, "expected NoOpFetcher for 'none' backend")
+}
