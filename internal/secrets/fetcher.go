@@ -36,8 +36,3 @@ func NewFetcherFromConfig() (SecretFetcher, error) {
 		return nil, fmt.Errorf("unknown secret backend: %q", cfg.Backend)
 	}
 }
-
-// Temporary stub — replaced by gcp.go in Task 4
-func NewGCPFetcher(secrets []string) (SecretFetcher, error) {
-	return nil, fmt.Errorf("gcp backend not yet implemented")
-}
