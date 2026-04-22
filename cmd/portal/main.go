@@ -11,6 +11,7 @@ import (
 	"github.com/emdash/kindle/internal/config"
 	"github.com/emdash/kindle/internal/db"
 	"github.com/emdash/kindle/internal/gcp"
+	"github.com/emdash/kindle/internal/secrets"
 	"github.com/emdash/kindle/internal/server"
 )
 
@@ -39,7 +40,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv := server.New(cfg, vmClient, database, staticFiles)
+	fetcher, err := secrets.NewFetcherFromConfig()
+	if err != nil {
+		slog.Error("failed to initialize secret fetcher", "error", err)
+		os.Exit(1)
+	}
+
+	srv := server.New(cfg, vmClient, database, staticFiles, fetcher)
 	slog.Info("portal listening", "addr", srv.Addr())
 	if err := http.ListenAndServe(srv.Addr(), srv.Handler()); err != nil {
 		slog.Error("server error", "error", err)

@@ -23,6 +23,7 @@ import (
 	"github.com/emdash/kindle/internal/k8s"
 	"github.com/emdash/kindle/internal/kubeconfig"
 	"github.com/emdash/kindle/internal/presets"
+	"github.com/emdash/kindle/internal/secrets"
 	"github.com/emdash/kindle/internal/terraform"
 )
 
@@ -32,7 +33,7 @@ type Server struct {
 	router chi.Router
 }
 
-func New(cfg *config.Config, vmClient gcp.VMClient, database *db.DB, staticFiles embed.FS) *Server {
+func New(cfg *config.Config, vmClient gcp.VMClient, database *db.DB, staticFiles embed.FS, fetcher secrets.SecretFetcher) *Server {
 	authHandler := auth.NewHandler(auth.HandlerConfig{
 		ClientID:        cfg.GoogleClientID,
 		ClientSecret:    cfg.GoogleClientSecret,
@@ -137,6 +138,11 @@ func New(cfg *config.Config, vmClient gcp.VMClient, database *db.DB, staticFiles
 		Jobs:     jobs,
 		TFRunner: tfRunner,
 		HelmUpgrade: func(envName, valuesPath, kubeconfigPath string) error {
+			secretVals, err := fetcher.FetchSecrets(context.Background(), envName)
+			if err != nil {
+				slog.Error("failed to fetch secrets", "env", envName, "error", err)
+				return fmt.Errorf("fetch secrets: %w", err)
+			}
 			return helmRunner.Upgrade(helm.UpgradeParams{
 				ReleaseName:    envName,
 				Namespace:      envName,
@@ -144,6 +150,7 @@ func New(cfg *config.Config, vmClient gcp.VMClient, database *db.DB, staticFiles
 				ValuesFile:     valuesPath,
 				KubeconfigPath: kubeconfigPath,
 				LogPath:        filepath.Join(cfg.DataDir, "envs", envName, "ops", "helm-upgrade.log"),
+				SecretValues:   secretVals,
 			})
 		},
 		GetKubeconfigPath: getKubeconfigPath,
