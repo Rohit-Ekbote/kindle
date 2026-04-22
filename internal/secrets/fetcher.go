@@ -31,17 +31,13 @@ func NewFetcherFromConfig() (SecretFetcher, error) {
 	case "gcp":
 		return NewGCPFetcher(cfg.Secrets)
 	case "none", "":
-		return &NoOpFetcher{}, nil
+		return NewNoOpFetcher(), nil
 	default:
 		return nil, fmt.Errorf("unknown secret backend: %q", cfg.Backend)
 	}
 }
 
-// Temporary stubs — replaced by vault.go and gcp.go in Tasks 3 and 4
-func NewVaultFetcher(secrets []string) (SecretFetcher, error) {
-	return nil, fmt.Errorf("vault backend not yet implemented")
-}
-
+// Temporary stub — replaced by gcp.go in Task 4
 func NewGCPFetcher(secrets []string) (SecretFetcher, error) {
 	return nil, fmt.Errorf("gcp backend not yet implemented")
 }
