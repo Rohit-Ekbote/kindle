@@ -51,9 +51,15 @@ func (r *Runner) Upgrade(p UpgradeParams) error {
 			return fmt.Errorf("create secrets temp file: %w", err)
 		}
 		defer os.Remove(f.Name())
-		if err := yaml.NewEncoder(f).Encode(p.SecretValues); err != nil {
+		enc := yaml.NewEncoder(f)
+		if err := enc.Encode(p.SecretValues); err != nil {
+			enc.Close()
 			f.Close()
 			return fmt.Errorf("write secrets temp file: %w", err)
+		}
+		if err := enc.Close(); err != nil {
+			f.Close()
+			return fmt.Errorf("close secrets temp file encoder: %w", err)
 		}
 		f.Close()
 		args = append(args, "--values", f.Name())
