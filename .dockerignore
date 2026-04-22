@@ -1,0 +1,9 @@
+bin/
+web/node_modules/
+web/dist/
+cmd/portal/web/
+data/
+.env
+*.swp
+*.swo
+.DS_Store
